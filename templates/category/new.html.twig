@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Category{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="form">
+        <br><h1>Ajouter une catégorie</h1>
+            {{ form_start(form) }}
+            {{form_row(form.name,{'attr': {'class': 'form form-control','placeholder': 'Nom categorie'}}) }}
+            <br>
+            <input type='submit' value='sauvgarder' class='btn btn-primary'>
+    {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

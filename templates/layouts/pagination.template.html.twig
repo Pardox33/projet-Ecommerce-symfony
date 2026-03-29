@@ -1,0 +1,34 @@
+{% if pageCount > 1 %}
+<nav aria-label="pagination">
+  <ul class="pagination justify-content-center">
+    
+    {% if current > 1 %}
+    <li class="page-item">
+      <a class="page-link" href="{{ path(route, query|merge({(pageParameterName): current - 1})) }}" 
+         style="background-color: #1126da; color: white; border: none; border-radius: 5px; margin: 0 3px;">
+         &laquo; Previous
+      </a>
+    </li>
+    {% endif %}
+
+    {% for page in pagesInRange %}
+    <li class="page-item {% if page == current %}active{% endif %}">
+      <a class="page-link" href="{{ path(route, query|merge({(pageParameterName): page})) }}"
+         style="{% if page == current %}background-color: #1126da; color: white;{% else %}color: #1126da;{% endif %} border-radius: 5px; margin: 0 3px; border: 1px solid #1126da;">
+         {{ page }}
+      </a>
+    </li>
+    {% endfor %}
+
+    {% if current < pageCount %}
+    <li class="page-item">
+      <a class="page-link" href="{{ path(route, query|merge({(pageParameterName): current + 1})) }}"
+         style="background-color: #1126da; color: white; border: none; border-radius: 5px; margin: 0 3px;">
+         Next &raquo;
+      </a>
+    </li>
+    {% endif %}
+
+  </ul>
+</nav>
+{% endif %}

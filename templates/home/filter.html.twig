@@ -1,10 +1,10 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello HomeController!{% endblock %}
+{% block title %}Produits filtrés{% endblock %}
 
 {% block body %}
 <div class="container"><br>
-    <h1>Products</h1>
+<h1>{{ subCategory.name }}</h1>
     <div class="row">
         {% for product in products %}
             <div class="col-md-4 mb-3">
@@ -16,22 +16,17 @@
                     {% endif %}
                     <div class="card-body">
                         <h5 class="card-title">
-                        <a style="text-decoration:none; color: #1126da;" href="{{ path('app_home_product_show',{'id':product.id}) }}">{{ product.name }}</a>
+                            <a style="text-decoration:none; color: #1126da;" href="{{ path('app_home_product_show',{'id':product.id}) }}">{{ product.name }}</a>
                         </h5>
                         <p class="card-text">{{ product.description|slice(0,50) }}</p>
-                        <h3>{{ product.price }} DT</h3>
-                        <a href="{{ path('app_cart_new', {'id': product.id}) }}" class="btn btn-success">
-                            add to card
-                        </a>
+                        <a href="#" class="btn btn-primary">Ajouter au panier</a>
                     </div>
                 </div>
             </div>
         {% else %}
-            <p>Aucun produit trouvé</p>
+            <p class="text-center">Aucun produit trouvé dans cette sous-catégorie</p>
         {% endfor %}
-    </div><br><br><br>
-
-    {{knp_pagination_render(products, 'layouts/pagination.template.html.twig')}}
-
+    </div>
+    <a href="{{ path('app_home') }}" class="btn btn-outline-secondary mt-3">Retour à l'accueil</a>
 </div>
 {% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+<div class="container mt-4">
+    {% include 'layouts/_flash_message.html.twig' %}
+    <h1>Gestion des commandes</h1>
+
+    <div class="btn-group mb-3">
+    <a href="{{ path('app_order_show', {'type': 'all'}) }}"
+       class="btn btn-outline-secondary {{ currentType == 'all' ? 'active' : '' }}">All</a>
+    <a href="{{ path('app_order_show', {'type': 'pay-online-not-delivered'}) }}"
+       class="btn btn-outline-warning {{ currentType == 'pay-online-not-delivered' ? 'active' : '' }}">Paid Online - Pending</a>
+    <a href="{{ path('app_order_show', {'type': 'pay-online-completed'}) }}"
+       class="btn btn-outline-success {{ currentType == 'pay-online-completed' ? 'active' : '' }}">Paid Online - Delivered</a>
+    <a href="{{ path('app_order_show', {'type': 'is-completed'}) }}"
+       class="btn btn-outline-primary {{ currentType == 'is-completed' ? 'active' : '' }}">All Completed</a>
+</div>
+
+    {% for order in orders %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Commande #{{ order.id }} — {{ order.createdAt|date('d/m/Y H:i') }}</h5>
+        </div>
+        <div class="card-body">
+            <h6>Informations client</h6>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Prénom</th><th>Nom</th><th>Téléphone</th><th>Adresse</th><th>Ville</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ order.firstName }}</td>
+                        <td>{{ order.lastName }}</td>
+                        <td>{{ order.phone }}</td>
+                        <td>{{ order.address }}</td>
+                        <td>{{ order.city.name }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Produits commandés</h6>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Produit</th><th>Prix unitaire</th><th>Quantité</th><th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for orderProduct in order.orderProducts %}
+                    <tr>
+                        <td>{{ orderProduct.product.name }}</td>
+                        <td>{{ orderProduct.product.price }} DT</td>
+                        <td>{{ orderProduct.quantity }}</td>
+                        <td>{{ orderProduct.product.price * orderProduct.quantity }} DT</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <p><strong>Frais de livraison:</strong> {{ order.city.shippingCost }} DT</p>
+            <p><strong>Total:</strong> {{ order.totalPrice }} DT</p>
+            <p>
+                <strong>Statut:</strong>
+                <span class="{{ order.isCompleted ? 'text-success' : 'text-danger' }}">
+                    {{ order.isCompleted ? 'Livré' : 'Non livré' }}
+                </span>
+            </p>
+
+            {% if not order.isCompleted %}
+            <a href="{{ path('app_order_update', {'id': order.id, 'type': currentType}) }}" class="btn btn-success btn-sm">
+                Marquer comme livré
+            </a>
+            {% endif %}
+            <a href="{{ path('app_order_remove', {'id': order.id}) }}"
+               class="btn btn-danger btn-sm ms-2"
+               onclick="return confirm('Supprimer cette commande?')">
+                Supprimer
+            </a>
+            <a href="{{ path('app_bill', {'id': order.id}) }}"
+                class="btn btn-primary btn-sm ms-2"
+                target="_blank">
+                    Print Invoice
+            </a>
+        </div>
+    </div>
+    {% else %}
+        <p>Aucune commande trouvée.</p>
+    {% endfor %}
+
+    {{ knp_pagination_render(orders) }}
+</div>
+{% endblock %}

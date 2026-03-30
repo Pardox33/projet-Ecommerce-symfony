@@ -11,3 +11,6 @@ when@test:
         profiler:
             collect: false
             collect_serializer_data: true
+web_profiler:
+    toolbar: false
+    intercept_redirects: false

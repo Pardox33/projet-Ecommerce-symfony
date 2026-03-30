@@ -1,11 +1,11 @@
 <?php
-
 namespace App\Form;
 
 use App\Entity\Product;
 use App\Entity\SubCategory;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -17,11 +17,13 @@ class ProductUpdateType extends AbstractType
             ->add('name')
             ->add('description')
             ->add('price')
-            ->add('image')
-            //->add('stock')
+            ->add('image', FileType::class, [
+                'required' => false,
+                'mapped' => false,
+            ])
             ->add('subCategories', EntityType::class, [
                 'class' => SubCategory::class,
-                'choice_label' => 'id',
+                'choice_label' => 'name',
                 'multiple' => true,
             ])
         ;

@@ -2,11 +2,12 @@
 
 namespace App\Controller;
 
-use App\Entity\AddProductHistory;
 use App\Entity\Product;
-use App\Form\AddProductHistoryType;
+use App\Entity\ProductHistory;
+use App\Form\ProductHistoryType;
 use App\Form\ProductType;
-use App\Repository\AddProductHistoryRepository;
+use App\Form\ProductUpdateType;
+use App\Repository\ProductHistoryRepository;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,7 +16,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
-use App\Form\ProductUpdateType;
 
 #[Route('/editor/product')]
 final class ProductController extends AbstractController
@@ -43,10 +43,7 @@ final class ProductController extends AbstractController
                 $newFileName = $safeName . '-' . uniqid() . '.' . $image->guessExtension();
 
                 try {
-                    $image->move(
-                        $this->getParameter('images_dir'),
-                        $newFileName
-                    );
+                    $image->move($this->getParameter('images_dir'), $newFileName);
                 } catch (FileException $e) {
                     $this->addFlash('danger', 'Erreur lors du téléchargement de l\'image');
                 }
@@ -57,16 +54,14 @@ final class ProductController extends AbstractController
             $entityManager->persist($product);
             $entityManager->flush();
 
-            $stockHistory = new AddProductHistory();
-            $stockHistory->setQte($product->getStock());
+            $stockHistory = new ProductHistory();
+            $stockHistory->setQuantity($product->getStock());
             $stockHistory->setProduct($product);
             $stockHistory->setCreatedAt(new \DateTimeImmutable());
             $entityManager->persist($stockHistory);
             $entityManager->flush();
 
-
             $this->addFlash('success', 'Le produit a été créé avec succès');
-
             return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -76,50 +71,47 @@ final class ProductController extends AbstractController
         ]);
     }
 
-    #[Route('/add/product/{id}/stock', name: 'app_product_stock_add', methods: ['POST','GET'])]
-public function addStock($id, Request $request, EntityManagerInterface $entityManager, ProductRepository $productRepository): Response
-{
-    $product = $productRepository->find($id);
-    $addStock = new AddProductHistory();
-    
-    $form = $this->createForm(AddProductHistoryType::class, $addStock);
-    $form->handleRequest($request);
+    #[Route('/add/product/{id}/stock', name: 'app_product_stock_add', methods: ['POST', 'GET'])]
+    public function addStock($id, Request $request, EntityManagerInterface $entityManager, ProductRepository $productRepository): Response
+    {
+        $product = $productRepository->find($id);
+        $history = new ProductHistory();
 
-    if($form->isSubmitted() && $form->isValid()){
-        if($addStock->getQte() > 0){
-            $newQte = $product->getStock() + $addStock->getQte();
-            $product->setStock($newQte);
+        $form = $this->createForm(ProductHistoryType::class, $history);
+        $form->handleRequest($request);
 
-            $addStock->setProduct($product);
-            $addStock->setCreatedAt(new \DateTimeImmutable()); 
+        if ($form->isSubmitted() && $form->isValid()) {
+            if ($history->getQuantity() > 0) {
+                $product->setStock($product->getStock() + $history->getQuantity());
 
-            $entityManager->persist($addStock);
-            $entityManager->persist($product); // ✅ save updated stock
-            $entityManager->flush();
+                $history->setProduct($product);
+                $history->setCreatedAt(new \DateTimeImmutable());
 
-            $this->addFlash('success', 'Stock ajouté avec succès');
-            return $this->redirectToRoute('app_product_index');
+                $entityManager->persist($history);
+                $entityManager->persist($product);
+                $entityManager->flush();
+
+                $this->addFlash('success', 'Stock ajouté avec succès');
+                return $this->redirectToRoute('app_product_index');
+            }
         }
+
+        return $this->render('product/addStock.html.twig', [
+            'form' => $form->createView(),
+            'product' => $product,
+        ]);
     }
 
-    return $this->render('product/addStock.html.twig', [
-        'form' => $form->createView(),
-        'product' => $product,
-    ]);
-}
+    #[Route('/add/product/{id}/stock/history', name: 'app_product_stock_add_history', methods: ['GET'])]
+    public function productHistory($id, ProductRepository $productRepository, ProductHistoryRepository $productHistoryRepository): Response
+    {
+        $product = $productRepository->find($id);
+        $histories = $productHistoryRepository->findBy(['product' => $product], ['id' => 'DESC']);
 
-
-#[Route('/add/product/{id}/stock/history', name: 'app_product_stock_add_history', methods: ['GET'])]
-public function productHistory($id, ProductRepository $productRepository , AddProductHistoryRepository $addProductHistoryRepository):Response{
-    $product =$productRepository->find($id);
-    $productAddedHistory = $addProductHistoryRepository->findBy(['product' => $product],['id'=>'DESC']);
-
-    return $this->render('product/addedStockHistoryShow.html.twig',[
-        'productAdded' => $productAddedHistory,
-        
-    ]);
-}
-
+        return $this->render('product/addedStockHistoryShow.html.twig', [
+            'productAdded' => $histories,
+        ]);
+    }
 
     #[Route('/{id}', name: 'app_product_show', methods: ['GET'])]
     public function show(Product $product): Response
@@ -136,20 +128,14 @@ public function productHistory($id, ProductRepository $productRepository , AddPr
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
             $image = $form->get('image')->getData();
-
-            
             if ($image) {
                 $originalName = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
                 $safeName = $slugger->slug($originalName);
                 $newFileName = $safeName . '-' . uniqid() . '.' . $image->guessExtension();
 
                 try {
-                    $image->move(
-                        $this->getParameter('images_dir'),
-                        $newFileName
-                    );
+                    $image->move($this->getParameter('images_dir'), $newFileName);
                 } catch (FileException $e) {
                     $this->addFlash('danger', 'Erreur lors du téléchargement de l\'image');
                 }
@@ -159,7 +145,6 @@ public function productHistory($id, ProductRepository $productRepository , AddPr
 
             $entityManager->flush();
             $this->addFlash('success', 'Le produit a été modifié avec succès');
-
             return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -180,5 +165,4 @@ public function productHistory($id, ProductRepository $productRepository , AddPr
 
         return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
     }
-
 }

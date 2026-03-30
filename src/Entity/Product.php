@@ -38,15 +38,15 @@ class Product
     private ?int $stock = null;
 
     /**
-     * @var Collection<int, AddProductHistory>
+     * @var Collection<int, ProductHistory>
      */
-    #[ORM\OneToMany(targetEntity: AddProductHistory::class, mappedBy: 'product', orphanRemoval: true)]
-    private Collection $addProductHistories;
+    #[ORM\OneToMany(targetEntity: ProductHistory::class, mappedBy: 'product', orphanRemoval: true)]
+    private Collection $productHistories;
 
     public function __construct()
     {
         $this->subCategories = new ArrayCollection();
-        $this->addProductHistories = new ArrayCollection();
+        $this->productHistories = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -62,7 +62,6 @@ class Product
     public function setName(string $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -74,7 +73,6 @@ class Product
     public function setDescription(?string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -86,7 +84,6 @@ class Product
     public function setPrice(int $price): static
     {
         $this->price = $price;
-
         return $this;
     }
 
@@ -103,14 +100,12 @@ class Product
         if (!$this->subCategories->contains($subCategory)) {
             $this->subCategories->add($subCategory);
         }
-
         return $this;
     }
 
     public function removeSubCategory(SubCategory $subCategory): static
     {
         $this->subCategories->removeElement($subCategory);
-
         return $this;
     }
 
@@ -122,7 +117,6 @@ class Product
     public function setImage(?string $image): static
     {
         $this->image = $image;
-
         return $this;
     }
 
@@ -134,37 +128,33 @@ class Product
     public function setStock(int $stock): static
     {
         $this->stock = $stock;
-
         return $this;
     }
 
     /**
-     * @return Collection<int, AddProductHistory>
+     * @return Collection<int, ProductHistory>
      */
-    public function getAddProductHistories(): Collection
+    public function getProductHistories(): Collection
     {
-        return $this->addProductHistories;
+        return $this->productHistories;
     }
 
-    public function addAddProductHistory(AddProductHistory $addProductHistory): static
+    public function addProductHistory(ProductHistory $productHistory): static
     {
-        if (!$this->addProductHistories->contains($addProductHistory)) {
-            $this->addProductHistories->add($addProductHistory);
-            $addProductHistory->setProduct($this);
+        if (!$this->productHistories->contains($productHistory)) {
+            $this->productHistories->add($productHistory);
+            $productHistory->setProduct($this);
         }
-
         return $this;
     }
 
-    public function removeAddProductHistory(AddProductHistory $addProductHistory): static
+    public function removeProductHistory(ProductHistory $productHistory): static
     {
-        if ($this->addProductHistories->removeElement($addProductHistory)) {
-            // set the owning side to null (unless already changed)
-            if ($addProductHistory->getProduct() === $this) {
-                $addProductHistory->setProduct(null);
+        if ($this->productHistories->removeElement($productHistory)) {
+            if ($productHistory->getProduct() === $this) {
+                $productHistory->setProduct(null);
             }
         }
-
         return $this;
     }
 }

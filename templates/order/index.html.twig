@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+{% block title %}Checkout{% endblock %}
+{% block body %}
+<div class="container mt-5">
+    <h1>Checkout <a href="{{ path('app_cart') }}" class="btn btn-primary btn-sm">Back to Cart</a></h1>
+    <div class="row g-5">
+        <div class="col-md-8">
+            <p class="text-uppercase fw-bold text-muted mb-3">Informations de livraison</p>
+            {{ form_start(form, {'attr': {'data-turbo': 'false'}}) }}
+                <div class="row g-3 mb-3">
+                    <div class="col-6">{{ form_row(form.firstName, {'label': 'Prénom'}) }}</div>
+                    <div class="col-6">{{ form_row(form.lastName, {'label': 'Nom'}) }}</div>
+                </div>
+                <div class="mb-3">{{ form_row(form.email, {'label': 'Email'}) }}</div>
+                <div class="mb-3">{{ form_row(form.phone, {'label': 'Téléphone'}) }}</div>
+                <div class="mb-3">{{ form_row(form.address, {'label': 'Adresse'}) }}</div>
+                <div class="mb-4">
+                    {{ form_row(form.city, {'label': 'Ville'}) }}
+                    <small class="text-muted">Les frais de livraison seront calculés selon la ville.</small>
+                </div>
+                <div class="mb-3">{{ form_row(form.paidOnDelivery, {'label': 'Payer à la livraison'}) }}</div>
+                <button type="submit" class="btn btn-success">Confirmer la commande</button>
+            {{ form_end(form) }}
+        </div>
+        <div class="col-md-4">
+            <p class="text-uppercase fw-bold text-muted mb-3">Résumé de la commande</p>
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <td>Sous-total produits</td>
+                        <td class="text-end fw-bold">{{ total }} DT</td>
+                    </tr>
+                    <tr>
+                        <td>Frais de livraison</td>
+                        <td class="text-end">
+                            <span id="shipping-fee" style="color:blue; font-weight:600;" data-total-products="{{ total }}">
+                                Sélectionnez une ville
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold fs-5">Total</td>
+                        <td class="text-end fw-bold fs-5 text-danger" id="grand-total">{{ total }} DT</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const citySelect = document.getElementById('{{ form.city.vars.id }}');
+    const shippingFee = document.getElementById('shipping-fee');
+    const grandTotal = document.getElementById('grand-total');
+    const totalProducts = parseFloat(shippingFee.dataset.totalProducts);
+
+    citySelect.addEventListener('change', function() {
+        const cityId = this.value;
+
+        if (!cityId) {
+            shippingFee.textContent = "Sélectionnez une ville";
+            grandTotal.textContent = totalProducts + " DT";
+            return;
+        }
+
+        shippingFee.textContent = "Calcul en cours...";
+
+        const urlTemplate = "{{ path('app_shipping_cost', {'id': 'CITY_ID'}) }}";
+        const url = urlTemplate.replace('CITY_ID', cityId);
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 200) {
+                    const shippingCost = parseFloat(data.content);
+                    shippingFee.textContent = shippingCost + " DT";
+                    grandTotal.textContent = (totalProducts + shippingCost).toFixed(2) + " DT";
+                }
+            })
+            .catch(function() {
+                shippingFee.textContent = "Erreur de calcul";
+            });
+    });
+});
+</script>
+{% endblock %}

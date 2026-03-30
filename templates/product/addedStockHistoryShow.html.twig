@@ -17,7 +17,7 @@
         {% for item in productAdded %}
             <tr>
                 <td>{{ item.id }}</td>
-                <td>{{ item.qte }}</td>
+                <td>{{ item.quantity }}</td>
                 <td>{{ item.createdAt|date('Y-m-d H:i:s') }}</td>
             </tr>
         {% else %}

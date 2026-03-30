@@ -4,12 +4,19 @@
     {{ form_row(form.price, {'attr': {'class': 'form-control'}}) }}
     
     {% if button_label is not defined or button_label != "update" %}
-    {% if form.stock is defined %}
-        {{ form_row(form.stock, {'attr': {'class': 'form-control'}}) }}
+        {% if form.stock is defined %}
+            {{ form_row(form.stock, {'attr': {'class': 'form-control'}}) }}
+        {% endif %}
     {% endif %}
-{% endif %}
+
     {{ form_row(form.subCategories, {'attr': {'class': 'form-control'}}) }}
-    {{ form_row(form.image, {'attr': {'class': 'form-control'}}) }}
+
+    <div class="mb-3">
+        {{ form_label(form.image, 'Image', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(form.image, {'attr': {'class': 'form-control-file'}}) }}
+        {{ form_errors(form.image) }}
+    </div>
+
     <br>
     <button class="btn btn-outline-primary btn-block">{{ button_label|default('Enregistrer') }}</button>
 {{ form_end(form) }}
